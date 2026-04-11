@@ -1,76 +1,183 @@
-        # SEPA Plugin for CakePHP
+# SEPA Plugin for CakePHP
 
-        [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-        [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.3-8892BF.svg)](https://php.net/)
-        [![Status](https://img.shields.io/badge/status-0.x%20unstable-orange.svg?style=flat-square)](#status)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.3-8892BF.svg)](https://php.net/)
+[![CakePHP](https://img.shields.io/badge/cakephp-%3E%3D%205.2-red.svg?style=flat-square)](https://cakephp.org/)
+[![Status](https://img.shields.io/badge/status-0.x%20unstable-orange.svg?style=flat-square)](#status)
 
-        > **Status: 0.x unstable.** API may break before 1.0. Pin to `^0.1` in production and read the CHANGELOG before upgrading minor versions. Cut to `1.0` once the API has stabilized across two or more real consumers.
+SEPA banking primitives for CakePHP 5.x: IBAN / BIC / Creditor ID validation and CAMT.053 / CAMT.054 parsing with German bank-quirk normalization.
 
-        A focused CakePHP 5.x plugin bundling the SEPA banking primitives every DACH vertical-SaaS application eventually needs:
+> **Status: 0.x unstable.** API may break before 1.0. Pin to `^0.1` in production and read [CHANGELOG.md](CHANGELOG.md) before upgrading. Cut to 1.0 once the API has stabilized across two or more real consumers.
 
-1. **IBAN / BIC / Creditor ID** — CakePHP-native validator integration on top of `jschaedl/iban`, BIC derivation from IBAN via the Bundesbank bank directory, SEPA Creditor ID format validator (`DE\\d{2}ZZZ\\d{11}` with checksum), and a form helper for live validation hints.
+## What's in the box
 
-2. **CAMT parsing** — wrapper on `genkgo/camt` with normalization across the German bank variants (Sparkasse, Volksbank, DKB, Commerzbank, Postbank, N26, Holvi). Emits domain events for payment receipt, debit return, and chargeback. Pluggable auto-match strategies for reconciling incoming bank entries against open invoices or SEPA debit batches.
+Two sub-concerns that every DACH SaaS dealing with bank data eventually needs:
 
-Sub-namespaced under `Sepa\\Iban` and `Sepa\\Camt` to keep the internal boundaries clean.
+| Sub-area | Purpose | Key classes |
+|---|---|---|
+| **Iban** | IBAN / BIC / SEPA Creditor ID validation and lookup | `IbanValidator`, `BicResolver`, `CreditorIdValidator` |
+| **Camt** | CAMT.053 account statements + CAMT.054 return notifications | `Camt053Parser`, `Camt054Parser`, `BankQuirkNormalizer`, `CamtEntry`, `CamtStatement`, `EndToEndIdStrategy` |
 
-        ## Features
+Each concern lives under its own sub-namespace (`Sepa\Iban\…`, `Sepa\Camt\…`) so internal boundaries stay clean.
 
-        - **Iban**: CakePHP `Validator::add('iban', ...)` integration, `BicResolver` via vendored Bundesbank bank directory, SEPA `CreditorIdValidator`, `IbanFormHelper`.
-- **Camt**: `Camt053Parser` for account statements, `Camt054Parser` for debit returns, normalization layer for Sparkasse / Volksbank / DKB / Commerzbank / Postbank / N26 / Holvi.
-- Domain events: `PaymentReceived`, `DebitReturned`, `ChargebackIssued`.
-- Pluggable `AutoMatchStrategy` interface — match by amount + Mandatsreferenz, by Verwendungszweck regex, or by fuzzy name.
-- Built on `jschaedl/iban` and `genkgo/camt`.
-- Both concerns co-versioned under one plugin.
+## Installation
 
-        ## Structure
+```bash
+composer require dereuromark/cakephp-sepa
+bin/cake plugin load Sepa
+```
 
-This plugin is internally organized into focused sub-areas under the main namespace:
+Requires **PHP 8.3+** and **CakePHP 5.2+**. Depends on:
+- `jschaedl/iban-validation` for IBAN validation primitives
+- `genkgo/camt` for CAMT parsing primitives
 
-### `Sepa\Iban`
+## Quick start
 
-- `Iban/Validation/IbanValidation`
-- `Iban/Service/BicResolver`
-- `Iban/Service/CreditorIdValidator`
-- `Iban/View/Helper/IbanFormHelper`
+### Validate an IBAN
 
-### `Sepa\Camt`
+```php
+use Sepa\Iban\Service\IbanValidator;
 
-- `Camt/Parser/Camt053Parser`
-- `Camt/Parser/Camt054Parser`
-- `Camt/Normalizer/BankQuirkNormalizer`
-- `Camt/Event/PaymentReceived`
-- `Camt/Event/DebitReturned`
-- `Camt/Strategy/AutoMatchStrategyInterface`
+$validator = new IbanValidator();
+$validator->isValid('DE89370400440532013000');        // true
+$validator->isValid('DE89 3704 0044 0532 0130 00');   // true (spaces stripped)
+$validator->isValid('DE99370400440532013000');        // false (bad checksum)
+$validator->isValid('de89370400440532013000');        // false (SEPA-strict: uppercase only)
 
+$validator->normalize('de89 3704 0044 0532 0130 00'); // 'DE89370400440532013000'
+$validator->countryCode('DE89370400440532013000');    // 'DE'
+```
 
-        ## Installation
+### Resolve BIC from German IBAN
 
-        Install via [composer](https://getcomposer.org):
+```php
+use Sepa\Iban\Service\BicResolver;
 
-        ```bash
-        composer require dereuromark/cakephp-sepa
-        bin/cake plugin load Sepa
-        ```
+$directory = include '/path/to/your/blz-bic.php'; // map of 8-digit BLZ → BIC
+$resolver = new BicResolver($directory);
 
-        ## Usage
+$resolver->resolve('DE89370400440532013000');    // 'COBADEFFXXX' (or null if unknown)
+$resolver->isKnown('DE89370400440532013000');    // true
+$resolver->extractBankCode('DE89370400440532013000'); // '37040044'
+```
 
-        > This is a 0.x skeleton. Usage examples will appear here as the API stabilizes. See the `docs/` folder for architecture notes and the `tests/` folder for working examples.
+### Validate a SEPA Creditor ID
 
-        ## Motivation
+```php
+use Sepa\Iban\Service\CreditorIdValidator;
 
-        This plugin is part of a three-plugin family extracted from real DACH vertical-SaaS products (landlord billing, freelancer invoicing, Vereinsverwaltung) where German legal and tax requirements shape the architecture:
+$validator = new CreditorIdValidator();
+$validator->isValid('DE98ZZZ09999999999'); // true (Bundesbank example)
+$validator->isValid('DE99ZZZ09999999999'); // false (bad ISO 7064 checksum)
 
-        - **`dereuromark/cakephp-compliance`** — GoBD retention, multi-tenant scoping, gap-free numbering, dual-approval workflows. Every-request compliance plumbing.
-        - **`dereuromark/cakephp-accounting`** — §286 / §288 BGB dunning calculators and DATEV CSV export. German accounting workflow.
-        - **`dereuromark/cakephp-sepa`** — IBAN / BIC / Creditor ID validation and CAMT.053 / CAMT.054 parsing with German bank-quirk normalization. SEPA banking primitives.
+$validator->countryCode('DE98ZZZ09999999999');      // 'DE'
+$validator->businessCode('DE98ZZZ09999999999');     // 'ZZZ'
+$validator->nationalIdentifier('DE98ZZZ09999999999'); // '09999999999'
+```
 
-        Each plugin bundles tightly-cohesive sub-concerns under sub-namespaces so installation is one `composer require` per domain area rather than a scattershot of micro-packages.
+### Parse a CAMT.053 bank statement
 
-        ## Contributing
+```php
+use Sepa\Camt\Parser\Camt053Parser;
 
-        PRs welcome. Please include tests, run PHPStan (`composer stan`) and PHPCS (`composer cs-check`) before submitting, and sign off commits per the DCO.
+$parser = new Camt053Parser();
+$result = $parser->parseFile('/path/to/statement.xml');
+// or: $result = $parser->parse($xmlString);
 
-        ## License
+foreach ($result->statements as $statement) {
+    echo $statement->accountIban; // 'DE89370400440532013000'
 
-        MIT. See [LICENSE](LICENSE).
+    foreach ($statement->entries as $entry) {
+        echo $entry->amount;                // '119.00'
+        echo $entry->currency;              // 'EUR'
+        echo $entry->isCredit ? '+' : '-';  // direction
+        echo $entry->endToEndId;            // 'RE-2026-0001'
+        echo $entry->counterpartyName;      // 'Max Mustermann'
+        echo $entry->counterpartyIban;      // 'DE27100777770209299700'
+        echo $entry->remittanceInformation; // 'Payment for invoice RE-2026-0001'
+        echo $entry->bookingDate;           // Cake\I18n\Date
+        echo $entry->valueDate;             // Cake\I18n\Date
+    }
+}
+```
+
+### Parse a CAMT.054 return notification (Rückläufer)
+
+```php
+use Sepa\Camt\Parser\Camt054Parser;
+
+$parser = new Camt054Parser();
+$result = $parser->parseFile('/path/to/returns.xml');
+
+foreach ($result->statements[0]->entries as $entry) {
+    echo $entry->returnReasonCode; // 'AC04' (account closed), 'MS03', etc.
+    echo $entry->endToEndId;       // 'DUES-2026-001' — use this to find the local record
+}
+```
+
+### Match incoming entries against local records
+
+```php
+use Sepa\Camt\Strategy\EndToEndIdStrategy;
+
+$strategy = new EndToEndIdStrategy('/^(RE-\d{4}-\d{4})/');
+
+foreach ($result->statements[0]->entries as $entry) {
+    $key = $strategy->match($entry); // e.g. 'RE-2026-0001'
+    if ($key !== null) {
+        $invoice = $this->Invoices->find()->where(['invoice_number' => $key])->first();
+        // ... mark as paid, emit PaymentReceived event, etc. ...
+    }
+}
+```
+
+### Normalize entries across bank variants
+
+```php
+use Sepa\Camt\Normalizer\BankQuirkNormalizer;
+
+$normalizer = new BankQuirkNormalizer();
+foreach ($result->statements[0]->entries as $entry) {
+    $cleaned = $normalizer->normalize($entry);
+    // Trimmed whitespace, uppercase reason codes, collapsed remittance spaces
+}
+```
+
+## Documentation
+
+- [docs/Iban.md](docs/Iban.md) — IBAN/BIC/Creditor ID validation, Bundesbank directory format, country-specific quirks
+- [docs/Camt.md](docs/Camt.md) — CAMT.053/054 parsing, DTO shapes, auto-match strategies, bank normalization
+
+## Testing
+
+```bash
+composer install
+composer test      # PHPUnit — 53 tests against synthetic CAMT fixtures
+composer stan      # PHPStan level 8
+composer cs-check  # PhpCollective code style
+```
+
+All tests run in under a second. No external service dependencies — CAMT XML fixtures are vendored in `tests/Fixture/`.
+
+## What's deliberately NOT here (0.1 scope)
+
+- **pain.008 generator** — SEPA direct debit batch emission is a separate concern best suited to its own plugin. Applications that need it today should use `digitickets/sepa-xml` directly.
+- **Bundesbank BLZ directory** — the 4MB quarterly-updated bank directory is intentionally NOT shipped in the package. Applications bring their own directory via `BicResolver`'s constructor. See [docs/Iban.md](docs/Iban.md) for format guidance.
+- **Real bank CAMT samples** — the test fixtures are synthetic (spec-compliant but not based on proprietary bank-specific output). Applications targeting specific banks should add integration tests against their own samples.
+- **FinTS / HBCI client** — direct bank API access for balance retrieval and payment submission is a large concern deliberately out of scope. Applications needing it should use `nemiah/php-fints`.
+
+## Related plugins
+
+Part of a family of focused DACH-compliance plugins for CakePHP 5.x:
+
+- **`dereuromark/cakephp-compliance`** — GoBD retention, multi-tenant scoping, gap-free numbering, dual-approval.
+- **`dereuromark/cakephp-accounting`** — §286 / §288 BGB dunning + DATEV CSV export.
+- **`dereuromark/cakephp-sepa`** — this plugin. SEPA banking primitives.
+
+## Contributing
+
+PRs welcome. Please include tests, run PHPStan (`composer stan`) and PHPCS (`composer cs-check`) before submitting, and sign off commits per the DCO.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

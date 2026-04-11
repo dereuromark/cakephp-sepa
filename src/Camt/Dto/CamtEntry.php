@@ -10,10 +10,9 @@ use Cake\I18n\Date;
  * Normalized view of a single booking entry inside a CAMT statement /
  * notification.
  *
- * Deliberately narrow: only the fields that German Kleinvereine and
- * Freelancer apps actually need for reconciliation are exposed. Consumers
- * who need the full transaction detail can escape to the underlying
- * `genkgo/camt` DTOs via a reference stored elsewhere.
+ * Deliberately narrow: only the fields that typical DACH small-business
+ * reconciliation flows need are exposed. Consumers who need the full
+ * transaction detail can escape to the underlying `genkgo/camt` DTOs.
  */
 final class CamtEntry
 {
