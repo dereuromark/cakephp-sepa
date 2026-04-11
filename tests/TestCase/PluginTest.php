@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Sepa\Test\TestCase;
 
-use Sepa\Plugin;
 use PHPUnit\Framework\TestCase;
+use Sepa\Plugin;
 
 /**
  * Sanity-check that the main plugin class loads.

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.02">
+    <BkToCstmrDbtCdtNtfctn>
+        <GrpHdr>
+            <MsgId>NTFN-2026-001</MsgId>
+            <CreDtTm>2026-03-20T10:00:00</CreDtTm>
+        </GrpHdr>
+        <Ntfctn>
+            <Id>NTFN-001</Id>
+            <CreDtTm>2026-03-20T10:00:00</CreDtTm>
+            <Acct>
+                <Id>
+                    <IBAN>DE89370400440532013000</IBAN>
+                </Id>
+                <Ccy>EUR</Ccy>
+            </Acct>
+            <Ntry>
+                <Amt Ccy="EUR">50.00</Amt>
+                <CdtDbtInd>DBIT</CdtDbtInd>
+                <RvslInd>true</RvslInd>
+                <Sts>BOOK</Sts>
+                <BookgDt>
+                    <Dt>2026-03-20</Dt>
+                </BookgDt>
+                <ValDt>
+                    <Dt>2026-03-20</Dt>
+                </ValDt>
+                <BkTxCd>
+                    <Domn>
+                        <Cd>PMNT</Cd>
+                        <Fmly>
+                            <Cd>RDDT</Cd>
+                            <SubFmlyCd>RRTN</SubFmlyCd>
+                        </Fmly>
+                    </Domn>
+                </BkTxCd>
+                <NtryDtls>
+                    <TxDtls>
+                        <Refs>
+                            <EndToEndId>DUES-2026-001</EndToEndId>
+                            <MndtId>MANDAT-123</MndtId>
+                        </Refs>
+                        <AmtDtls>
+                            <TxAmt>
+                                <Amt Ccy="EUR">50.00</Amt>
+                            </TxAmt>
+                        </AmtDtls>
+                        <RltdPties>
+                            <Dbtr>
+                                <Nm>Erika Musterfrau</Nm>
+                            </Dbtr>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>DE27100777770209299700</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                        </RltdPties>
+                        <RtrInf>
+                            <Rsn>
+                                <Cd>AC04</Cd>
+                            </Rsn>
+                            <AddtlInf>Account closed</AddtlInf>
+                        </RtrInf>
+                    </TxDtls>
+                </NtryDtls>
+            </Ntry>
+        </Ntfctn>
+    </BkToCstmrDbtCdtNtfctn>
+</Document>

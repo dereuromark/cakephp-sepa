@@ -19,7 +19,7 @@
     "require": {
         "php": ">=8.3",
         "cakephp/cakephp": "^5.2.0",
-        "jschaedl/iban": "^2.0",
+        "jschaedl/iban-validation": "^1.0",
         "genkgo/camt": "^2.0"
     },
     "require-dev": {
