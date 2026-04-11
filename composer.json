@@ -1,0 +1,58 @@
+{
+    "name": "dereuromark/cakephp-sepa",
+    "description": "SEPA banking primitives for CakePHP 5.x: IBAN / BIC / Creditor ID validation and CAMT.053 / CAMT.054 parsing with German bank-quirk normalization.",
+    "type": "cakephp-plugin",
+    "keywords": [
+        "cakephp",
+        "plugin",
+        "dach",
+        "compliance",
+        "germany"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mark Scherer",
+            "homepage": "https://www.dereuromark.de"
+        }
+    ],
+    "require": {
+        "php": ">=8.3",
+        "cakephp/cakephp": "^5.2.0",
+        "jschaedl/iban": "^2.0",
+        "genkgo/camt": "^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5 || ^12.1",
+        "php-collective/code-sniffer": "dev-master as 0.4.6",
+        "phpstan/phpstan": "^2.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sepa\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sepa\\Test\\": "tests/",
+            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
+        }
+    },
+    "scripts": {
+        "check": [
+            "@cs-check",
+            "@test"
+        ],
+        "cs-check": "phpcs --colors --parallel=16",
+        "cs-fix": "phpcbf --colors --parallel=16",
+        "stan": "vendor/bin/phpstan analyze",
+        "test": "phpunit"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
