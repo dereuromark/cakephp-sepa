@@ -9,6 +9,6 @@ use Cake\Core\BasePlugin;
 /**
  * SEPA Plugin for CakePHP — main plugin class.
  */
-class Plugin extends BasePlugin
+class SepaPlugin extends BasePlugin
 {
 }
