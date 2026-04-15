@@ -5,7 +5,7 @@
 [![CakePHP](https://img.shields.io/badge/cakephp-%3E%3D%205.2-red.svg?style=flat-square)](https://cakephp.org/)
 [![Status](https://img.shields.io/badge/status-0.x%20unstable-orange.svg?style=flat-square)](#status)
 
-SEPA banking primitives for CakePHP 5.x: IBAN / BIC / Creditor ID validation and CAMT.053 / CAMT.054 parsing with German bank-quirk normalization.
+SEPA banking primitives for CakePHP 5.x: IBAN / BIC / Creditor ID validation and CAMT.052 / CAMT.053 / CAMT.054 parsing with German bank-quirk normalization.
 
 > **Status: 0.x unstable.** API may break before 1.0. Pin to `^0.1` in production and read [CHANGELOG.md](CHANGELOG.md) before upgrading. Cut to 1.0 once the API has stabilized across two or more real consumers.
 
@@ -16,7 +16,7 @@ Two sub-concerns that every DACH SaaS dealing with bank data eventually needs:
 | Sub-area | Purpose | Key classes |
 |---|---|---|
 | **Iban** | IBAN / BIC / SEPA Creditor ID validation and lookup | `IbanValidator`, `BicResolver`, `CreditorIdValidator` |
-| **Camt** | CAMT.053 account statements + CAMT.054 return notifications | `Camt053Parser`, `Camt054Parser`, `BankQuirkNormalizer`, `CamtEntry`, `CamtStatement`, `EndToEndIdStrategy` |
+| **Camt** | CAMT.052 interim account reports + CAMT.053 end-of-day statements + CAMT.054 return notifications | `Camt052Parser`, `Camt053Parser`, `Camt054Parser`, `BankQuirkNormalizer`, `CamtEntry`, `CamtStatement`, `EndToEndIdStrategy` |
 
 Each concern lives under its own sub-namespace (`Sepa\Iban\…`, `Sepa\Camt\…`) so internal boundaries stay clean.
 
@@ -77,6 +77,10 @@ $validator->nationalIdentifier('DE98ZZZ09999999999'); // '09999999999'
 ```
 
 ### Parse a CAMT.053 bank statement
+
+> CAMT.052 (interim / intraday report) works the same way — swap `Camt053Parser`
+> for `Camt052Parser`. It produces the same `CamtResult` surface and supports
+> schema versions `camt.052.001.01` through `.08` transparently.
 
 ```php
 use Sepa\Camt\Parser\Camt053Parser;
@@ -147,7 +151,7 @@ foreach ($result->statements[0]->entries as $entry) {
 ## Documentation
 
 - [docs/Iban.md](docs/Iban.md) — IBAN/BIC/Creditor ID validation, Bundesbank directory format, country-specific quirks
-- [docs/Camt.md](docs/Camt.md) — CAMT.053/054 parsing, DTO shapes, auto-match strategies, bank normalization
+- [docs/Camt.md](docs/Camt.md) — CAMT.052/053/054 parsing, DTO shapes, auto-match strategies, bank normalization
 
 ## Testing
 
