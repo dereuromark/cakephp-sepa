@@ -19,8 +19,8 @@
     "require": {
         "php": ">=8.3",
         "cakephp/cakephp": "^5.2.0",
-        "jschaedl/iban-validation": "^1.0",
-        "genkgo/camt": "^2.0"
+        "jschaedl/iban-validation": "^1.0 || ^2.5",
+        "genkgo/camt": "dev-fixed-master as 2.6.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5 || ^12.1",
@@ -53,6 +53,12 @@
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/dereuromark/camt"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }

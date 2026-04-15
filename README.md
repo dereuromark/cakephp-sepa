@@ -30,6 +30,7 @@ bin/cake plugin load Sepa
 Requires **PHP 8.3+** and **CakePHP 5.2+**. Depends on:
 - `jschaedl/iban-validation` for IBAN validation primitives
 - `genkgo/camt` for CAMT parsing primitives
+- temporary fork pin available when waiting on upstream CAMT fixes
 
 ## Quick start
 

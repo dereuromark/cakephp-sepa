@@ -13,6 +13,11 @@
                     <IBAN>DE89370400440532013000</IBAN>
                 </Id>
                 <Ccy>EUR</Ccy>
+                <Svcr>
+                    <FinInstnId>
+                        <BIC>COBADEFFXXX</BIC>
+                    </FinInstnId>
+                </Svcr>
             </Acct>
             <Ntry>
                 <Amt Ccy="EUR">50.00</Amt>

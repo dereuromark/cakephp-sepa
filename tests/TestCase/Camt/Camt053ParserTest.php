@@ -33,6 +33,14 @@ class Camt053ParserTest extends TestCase
         $this->assertSame('DE89370400440532013000', $statement->accountIban);
     }
 
+    public function testStatementHasAccountBic(): void
+    {
+        $xml = (string)file_get_contents(ROOT . DS . 'tests' . DS . 'Fixture' . DS . 'camt053_sample.xml');
+        $result = $this->parser->parse($xml);
+        $statement = $result->statements[0];
+        $this->assertSame('COBADEFFXXX', $statement->accountBic);
+    }
+
     public function testStatementCarriesEntries(): void
     {
         $xml = (string)file_get_contents(ROOT . DS . 'tests' . DS . 'Fixture' . DS . 'camt053_sample.xml');
