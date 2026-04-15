@@ -78,11 +78,16 @@ class Camt053Parser
                 $entries[] = $this->mapEntry($entry);
             }
 
+            $fromRaw = $record->getFromDate();
+            $toRaw = $record->getToDate();
+
             $statements[] = new CamtStatement(
                 id: $record->getId(),
                 accountIban: $iban,
                 currency: $this->currencyFromEntries($entries),
                 entries: $entries,
+                fromDate: $fromRaw !== null ? Date::parse($fromRaw->format('Y-m-d')) : null,
+                toDate: $toRaw !== null ? Date::parse($toRaw->format('Y-m-d')) : null,
             );
         }
 
@@ -138,6 +143,7 @@ class Camt053Parser
             remittanceInformation: $remittance,
             counterpartyName: $counterpartyName,
             counterpartyIban: $counterpartyIban,
+            ntryRef: $entry->getReference(),
         );
     }
 

@@ -8,6 +8,10 @@
         <Stmt>
             <Id>STMT-001</Id>
             <CreDtTm>2026-03-15T10:00:00</CreDtTm>
+            <FrToDt>
+                <FrDtTm>2026-03-01T00:00:00</FrDtTm>
+                <ToDtTm>2026-03-15T23:59:59</ToDtTm>
+            </FrToDt>
             <Acct>
                 <Id>
                     <IBAN>DE89370400440532013000</IBAN>
@@ -39,6 +43,7 @@
                 </Dt>
             </Bal>
             <Ntry>
+                <NtryRef>NTRY-2026-03-10-001</NtryRef>
                 <Amt Ccy="EUR">119.00</Amt>
                 <CdtDbtInd>CRDT</CdtDbtInd>
                 <Sts>BOOK</Sts>
