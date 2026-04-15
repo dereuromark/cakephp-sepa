@@ -9,3 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial plugin skeleton.
+- `Camt052Parser` for CAMT.052 interim / intraday account reports
+  (`BkToCstmrAcctRpt`). Normalizes entries into the same `CamtResult` shape
+  as `Camt053Parser`, so callers can feed 052 documents through the same
+  matching pipeline. Supports `camt.052.001.01`–`.08` via the underlying
+  `genkgo/camt` reader's auto-detection.

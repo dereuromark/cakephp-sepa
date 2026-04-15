@@ -1,11 +1,12 @@
-# Camt — CAMT.053 & CAMT.054 Parsing
+# Camt — CAMT.052 / CAMT.053 / CAMT.054 Parsing
 
-CAMT (Cash Management) is the ISO 20022 XML format banks use to report account activity. Two variants matter for SaaS reconciliation:
+CAMT (Cash Management) is the ISO 20022 XML format banks use to report account activity. Three variants matter for SaaS reconciliation:
 
+- **CAMT.052** — *Bank-to-Customer Account Report*. Interim / intraday report of booked (and often pending) entries. Used when you need same-day visibility before the end-of-day statement is available, or when a bank only exports 052 for ad-hoc period ranges. `Camt052Parser` produces the same `CamtResult` shape as `Camt053Parser`, so downstream matching/reconciliation code doesn't need to branch. Schema versions `camt.052.001.01` through `.08` are handled transparently via the underlying `genkgo/camt` reader.
 - **CAMT.053** — *Bank-to-Customer Statement*. Daily or periodic account statement with all booked entries. Used for general reconciliation: "did this invoice get paid?"
 - **CAMT.054** — *Bank-to-Customer Debit/Credit Notification*. Used for immediate debit return notifications (Rückläufer): "your SEPA debit against member X failed because of reason AC04."
 
-The `Sepa\Camt` sub-area parses both formats into normalized DTOs, with extraction of the fields that actually matter for auto-matching against local invoices and dues items.
+The `Sepa\Camt` sub-area parses all three formats into normalized DTOs, with extraction of the fields that actually matter for auto-matching against local invoices and dues items.
 
 ---
 
@@ -54,6 +55,49 @@ final class CamtEntry
     public readonly ?string $returnReasonCode; // AC04, MS03, etc. (CAMT.054 only)
 }
 ```
+
+---
+
+## Camt052Parser — interim account reports
+
+### Usage
+
+`Camt052Parser` mirrors `Camt053Parser` exactly — same `parse()` / `parseFile()` surface, same `CamtResult` return type, same error wrapping in `CamtParseException`. Use it whenever a bank gives you a `BkToCstmrAcctRpt` document (CAMT.052) instead of the end-of-day `BkToCstmrStmt` (CAMT.053):
+
+```php
+use Sepa\Camt\Parser\Camt052Parser;
+
+$parser = new Camt052Parser();
+$result = $parser->parseFile('/path/to/intraday-report.xml');
+
+foreach ($result->statements[0]->entries as $entry) {
+    // Same CamtEntry shape as a CAMT.053 entry
+    echo $entry->amount;
+}
+```
+
+### When you'd reach for 052 vs 053
+
+| Use case | Format |
+|---|---|
+| End-of-day reconciliation, all booked entries, periodic batch | CAMT.053 |
+| Intraday visibility, on-demand "what posted today?" pulls | CAMT.052 |
+| Bank only offers an interim report for the period you want | CAMT.052 |
+| SEPA debit return notification | CAMT.054 |
+
+### Supported CAMT.052 versions
+
+Via `genkgo/camt`:
+
+| Version | Supported |
+|---|---|
+| camt.052.001.01 | ✅ |
+| camt.052.001.02 | ✅ |
+| camt.052.001.04 | ✅ |
+| camt.052.001.06 | ✅ |
+| camt.052.001.08 | ✅ (current German DK / CGI profile) |
+
+The parser auto-detects the version from the XML namespace.
 
 ---
 
