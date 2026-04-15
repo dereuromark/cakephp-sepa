@@ -33,6 +33,14 @@ class Camt054ParserTest extends TestCase
         $this->assertFalse($entry->isCredit);
     }
 
+    public function testNotificationHasAccountBic(): void
+    {
+        $xml = (string)file_get_contents(ROOT . DS . 'tests' . DS . 'Fixture' . DS . 'camt054_sample.xml');
+        $result = $this->parser->parse($xml);
+        $statement = $result->statements[0];
+        $this->assertSame('COBADEFFXXX', $statement->accountBic);
+    }
+
     public function testEndToEndIdIsPreserved(): void
     {
         $xml = (string)file_get_contents(ROOT . DS . 'tests' . DS . 'Fixture' . DS . 'camt054_sample.xml');

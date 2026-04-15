@@ -30,6 +30,7 @@ final class CamtStatement
 {
     public readonly string $id;
     public readonly string $accountIban;
+    public readonly ?string $accountBic;
     public readonly string $currency;
     /** @var list<CamtEntry> */
     public readonly array $entries;

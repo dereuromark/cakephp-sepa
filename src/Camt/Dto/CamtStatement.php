@@ -22,6 +22,7 @@ final class CamtStatement
     /**
      * @param string $id
      * @param string $accountIban
+     * @param string|null $accountBic
      * @param string $currency
      * @param list<\Sepa\Camt\Dto\CamtEntry> $entries
      * @param \Cake\I18n\Date|null $fromDate Statement period start (CAMT `<FrToDt><FrDtTm>`).
@@ -30,6 +31,7 @@ final class CamtStatement
     public function __construct(
         public readonly string $id,
         public readonly string $accountIban,
+        public readonly ?string $accountBic,
         public readonly string $currency,
         public readonly array $entries,
         public readonly ?Date $fromDate = null,

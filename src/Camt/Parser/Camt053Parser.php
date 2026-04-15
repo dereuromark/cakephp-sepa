@@ -68,6 +68,7 @@ class Camt053Parser
         $statements = [];
         foreach ($message->getRecords() as $record) {
             $iban = '';
+            $bic = $record->getAccountServicerBic();
             $account = $record->getAccount();
             if ($account instanceof IbanAccount) {
                 $iban = $account->getIdentification();
@@ -84,6 +85,7 @@ class Camt053Parser
             $statements[] = new CamtStatement(
                 id: $record->getId(),
                 accountIban: $iban,
+                accountBic: $bic,
                 currency: $this->currencyFromEntries($entries),
                 entries: $entries,
                 fromDate: $fromRaw !== null ? Date::parse($fromRaw->format('Y-m-d')) : null,

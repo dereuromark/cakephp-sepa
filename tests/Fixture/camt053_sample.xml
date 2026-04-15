@@ -17,6 +17,11 @@
                     <IBAN>DE89370400440532013000</IBAN>
                 </Id>
                 <Ccy>EUR</Ccy>
+                <Svcr>
+                    <FinInstnId>
+                        <BIC>COBADEFFXXX</BIC>
+                    </FinInstnId>
+                </Svcr>
             </Acct>
             <Bal>
                 <Tp>
