@@ -87,4 +87,104 @@ class Camt053ParserTest extends TestCase
         $this->expectException(CamtParseException::class);
         $this->parser->parse('<not-camt/>');
     }
+
+    public function testStatementExposesFromAndToDatesFromFrToDtElement(): void
+    {
+        $xml = (string)file_get_contents(ROOT . DS . 'tests' . DS . 'Fixture' . DS . 'camt053_sample.xml');
+        $result = $this->parser->parse($xml);
+        $stmt = $result->statements[0];
+
+        $this->assertNotNull($stmt->fromDate, 'fromDate must be populated from <FrToDt><FrDtTm>');
+        $this->assertNotNull($stmt->toDate, 'toDate must be populated from <FrToDt><ToDtTm>');
+        $this->assertSame('2026-03-01', $stmt->fromDate->format('Y-m-d'));
+        $this->assertSame('2026-03-15', $stmt->toDate->format('Y-m-d'));
+    }
+
+    public function testStatementFromAndToDatesAreNullWhenFrToDtAbsent(): void
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02">
+  <BkToCstmrStmt>
+    <GrpHdr><MsgId>MSG-NO-PERIOD</MsgId><CreDtTm>2026-03-15T10:00:00</CreDtTm></GrpHdr>
+    <Stmt>
+      <Id>STMT-NO-PERIOD</Id>
+      <CreDtTm>2026-03-15T10:00:00</CreDtTm>
+      <Acct>
+        <Id><IBAN>DE89370400440532013000</IBAN></Id>
+        <Ccy>EUR</Ccy>
+      </Acct>
+      <Bal>
+        <Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp>
+        <Amt Ccy="EUR">0.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt><Dt>2026-03-01</Dt></Dt>
+      </Bal>
+      <Bal>
+        <Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp>
+        <Amt Ccy="EUR">0.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt><Dt>2026-03-15</Dt></Dt>
+      </Bal>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>';
+
+        $result = $this->parser->parse($xml);
+        $stmt = $result->statements[0];
+
+        $this->assertNull($stmt->fromDate);
+        $this->assertNull($stmt->toDate);
+    }
+
+    public function testEntryExposesNtryRefWhenPresent(): void
+    {
+        $xml = (string)file_get_contents(ROOT . DS . 'tests' . DS . 'Fixture' . DS . 'camt053_sample.xml');
+        $result = $this->parser->parse($xml);
+        $entry = $result->statements[0]->entries[0];
+
+        $this->assertSame('NTRY-2026-03-10-001', $entry->ntryRef);
+    }
+
+    public function testEntryNtryRefIsNullWhenElementAbsent(): void
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02">
+  <BkToCstmrStmt>
+    <GrpHdr><MsgId>MSG-NO-NTRYREF</MsgId><CreDtTm>2026-03-15T10:00:00</CreDtTm></GrpHdr>
+    <Stmt>
+      <Id>STMT-NO-NTRYREF</Id>
+      <CreDtTm>2026-03-15T10:00:00</CreDtTm>
+      <Acct>
+        <Id><IBAN>DE89370400440532013000</IBAN></Id>
+        <Ccy>EUR</Ccy>
+      </Acct>
+      <Bal>
+        <Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp>
+        <Amt Ccy="EUR">0.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt><Dt>2026-03-01</Dt></Dt>
+      </Bal>
+      <Bal>
+        <Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp>
+        <Amt Ccy="EUR">50.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt><Dt>2026-03-15</Dt></Dt>
+      </Bal>
+      <Ntry>
+        <Amt Ccy="EUR">50.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt><Dt>2026-03-10</Dt></BookgDt>
+        <ValDt><Dt>2026-03-10</Dt></ValDt>
+        <BkTxCd><Domn><Cd>PMNT</Cd><Fmly><Cd>RCDT</Cd><SubFmlyCd>ESCT</SubFmlyCd></Fmly></Domn></BkTxCd>
+      </Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>';
+
+        $result = $this->parser->parse($xml);
+        $entry = $result->statements[0]->entries[0];
+
+        $this->assertNull($entry->ntryRef);
+    }
 }
