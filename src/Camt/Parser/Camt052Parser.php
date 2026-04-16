@@ -32,6 +32,8 @@ use Throwable;
  */
 class Camt052Parser
 {
+    use CounterpartyExtractionTrait;
+
     protected Reader $reader;
 
     public function __construct(?Reader $reader = null)
@@ -118,6 +120,7 @@ class Camt052Parser
         $remittance = null;
         $counterpartyName = null;
         $counterpartyIban = null;
+        $ultimateCounterpartyName = null;
 
         $detail = $entry->getTransactionDetail();
         if ($detail !== null) {
@@ -129,16 +132,10 @@ class Camt052Parser
             if ($rmt !== null) {
                 $remittance = $rmt->getMessage();
             }
-            foreach ($detail->getRelatedParties() as $party) {
-                $partyAccount = $party->getAccount();
-                if ($partyAccount instanceof IbanAccount) {
-                    $counterpartyIban = $partyAccount->getIdentification();
-                }
-                $type = $party->getRelatedPartyType();
-                if ($counterpartyName === null && $type->getName() !== null) {
-                    $counterpartyName = $type->getName();
-                }
-            }
+            $party = $this->extractCounterparty($detail, $isCredit);
+            $counterpartyName = $party['name'];
+            $counterpartyIban = $party['iban'];
+            $ultimateCounterpartyName = $party['ultimateName'];
         }
 
         return new CamtEntry(
@@ -152,6 +149,7 @@ class Camt052Parser
             counterpartyName: $counterpartyName,
             counterpartyIban: $counterpartyIban,
             ntryRef: $entry->getReference(),
+            ultimateCounterpartyName: $ultimateCounterpartyName,
         );
     }
 

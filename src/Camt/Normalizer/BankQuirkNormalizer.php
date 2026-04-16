@@ -39,6 +39,8 @@ class BankQuirkNormalizer
             returnReasonCode: $entry->returnReasonCode !== null
                 ? strtoupper($entry->returnReasonCode)
                 : null,
+            ntryRef: $entry->ntryRef,
+            ultimateCounterpartyName: $this->trimOrNull($entry->ultimateCounterpartyName),
         );
     }
 
